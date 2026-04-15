@@ -1,15 +1,29 @@
-# Configuration example
+# MaiBot Official QQ Adapter - Configuration Example
+# Copy this file to config/config.toml and fill in your credentials.
 
-[database]
-  host = "localhost"
-  port = 3306
-  user = "root"
-  password = ""
-  name = "mydb"
+[qq]
+# QQ Official Bot App ID (from https://bot.q.qq.com/)
+app_id = "YOUR_APP_ID"
+# QQ Official Bot App Secret (client secret)
+app_secret = "YOUR_APP_SECRET"
+# Gateway intents bitmask.
+# Common values:
+#   1          – GUILDS (basic guild events)
+#   512        – GUILD_MESSAGES (private-domain bots, receives all channel messages)
+#   1073741824 – PUBLIC_GUILD_MESSAGES (public-domain bots, receives @-mention messages)
+# Combine by adding the values, e.g. 1073741825 = GUILDS + PUBLIC_GUILD_MESSAGES
+intents = 1073741825
+# QQ Official Bot API base URL
+api_base_url = "https://api.sgroup.qq.com"
+# QQ Official Bot Auth URL (for access token)
+auth_url = "https://bots.qq.com/app/getAppAccessToken"
 
-[server]
-  host = "0.0.0.0"
-  port = 8080
+[maibot]
+# URL where MaiBot listens for incoming messages
+message_handler_url = "http://localhost:8080/api/message"
 
 [logging]
-  level = "info"
+# Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+level = "INFO"
+# Optional log file path (leave empty to log to stdout only)
+log_file = "logs/adapter.log"

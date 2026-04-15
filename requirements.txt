@@ -1,7 +1,2 @@
 aiohttp
-fastapi
-uvicorn
 toml
-pydantic
-python-dotenv
-maim-message
