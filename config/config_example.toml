@@ -6,21 +6,25 @@
 app_id = "YOUR_APP_ID"
 # QQ Official Bot App Secret (client secret)
 app_secret = "YOUR_APP_SECRET"
-# Gateway intents bitmask.
-# Common values:
-#   1          – GUILDS (basic guild events)
-#   512        – GUILD_MESSAGES (private-domain bots, receives all channel messages)
-#   1073741824 – PUBLIC_GUILD_MESSAGES (public-domain bots, receives @-mention messages)
-# Combine by adding the values, e.g. 1073741825 = GUILDS + PUBLIC_GUILD_MESSAGES
-intents = 1073741825
-# QQ Official Bot API base URL
-api_base_url = "https://api.sgroup.qq.com"
-# QQ Official Bot Auth URL (for access token)
-auth_url = "https://bots.qq.com/app/getAppAccessToken"
+
+# Intent flags – set to true to receive the corresponding event type.
+# public_guild_messages: AT_MESSAGE_CREATE (公域频道 @ 消息)
+# public_messages:       GROUP_AT_MESSAGE_CREATE + C2C_MESSAGE_CREATE (群/C2C 消息)
+# direct_message:        DIRECT_MESSAGE_CREATE (频道私信)
+# guild_messages:        MESSAGE_CREATE (私域频道全量消息，需私域权限)
+[qq.intents]
+public_guild_messages = true
+public_messages       = true
+direct_message        = true
+guild_messages        = false
 
 [maibot]
-# URL where MaiBot listens for incoming messages
-message_handler_url = "http://localhost:8080/api/message"
+# WebSocket URL of MaiBot's maim_message server.
+# Default port is 8080; adjust if you changed MaiBot's HOST/PORT.
+server_url = "ws://localhost:8080/ws"
+# Optional authentication token (set in MaiBot's maim_message config).
+# Leave empty if MaiBot does not require a token.
+token = ""
 
 [logging]
 # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL

@@ -8,15 +8,15 @@ Configuration is read from config/config.toml (or the path given by the
 QQ_ADAPTER_CONFIG environment variable).
 """
 
-import asyncio
 import logging
 import os
 import sys
 from pathlib import Path
 
 import toml
+import botpy
 
-from adapter import Auth, APIClient, EventHandler, QQAdapter
+from adapter import MaiBotClient, QQOfficialBotAdapter
 
 # ---------------------------------------------------------------------------
 # Config helpers
@@ -63,56 +63,69 @@ def configure_logging(cfg: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
-# AdapterManager
-# ---------------------------------------------------------------------------
-
-
-class AdapterManager:
-    def __init__(self, config: dict):
-        self.config = config
-
-    def _build_adapter(self) -> QQAdapter:
-        qq_cfg = self.config["qq"]
-        maibot_cfg = self.config["maibot"]
-
-        auth = Auth(
-            app_id=qq_cfg["app_id"],
-            app_secret=qq_cfg["app_secret"],
-            auth_url=qq_cfg.get(
-                "auth_url", "https://bots.qq.com/app/getAppAccessToken"
-            ),
-        )
-        api_client = APIClient(
-            auth=auth,
-            api_base_url=qq_cfg.get("api_base_url", "https://api.sgroup.qq.com"),
-        )
-        event_handler = EventHandler(
-            maibot_url=maibot_cfg["message_handler_url"],
-        )
-        return QQAdapter(
-            auth=auth,
-            api_client=api_client,
-            event_handler=event_handler,
-            intents=int(qq_cfg.get("intents", 1073741825)),
-        )
-
-    def start(self) -> None:
-        adapter = self._build_adapter()
-        logger = logging.getLogger(__name__)
-        logger.info("Starting QQ Official Bot Adapter…")
-        try:
-            asyncio.run(adapter.run())
-        except KeyboardInterrupt:
-            logger.info("Adapter stopped by user.")
-
-
-# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
-if __name__ == "__main__":
+
+def main() -> None:
     config_path = Path(os.environ.get("QQ_ADAPTER_CONFIG", _DEFAULT_CONFIG_PATH))
     cfg = load_config(config_path)
     configure_logging(cfg)
-    manager = AdapterManager(cfg)
-    manager.start()
+
+    logger = logging.getLogger(__name__)
+
+    qq_cfg = cfg["qq"]
+    maibot_cfg = cfg["maibot"]
+
+    app_id: str = str(qq_cfg["app_id"])
+    app_secret: str = str(qq_cfg["app_secret"])
+
+    # Build intents based on config. Defaults to public messages + direct
+    # message + group/C2C events, which covers most use cases.
+    intents_cfg: dict = qq_cfg.get("intents", {})
+    if isinstance(intents_cfg, int):
+        # Legacy: numeric intents bitmask → just use the defaults
+        logger.warning(
+            "Numeric 'intents' in config is ignored; "
+            "set individual intent flags instead."
+        )
+        intents_cfg = {}
+
+    intents = botpy.Intents(
+        public_messages=bool(intents_cfg.get("public_messages", True)),
+        public_guild_messages=bool(intents_cfg.get("public_guild_messages", True)),
+        direct_message=bool(intents_cfg.get("direct_message", True)),
+        guild_messages=bool(intents_cfg.get("guild_messages", False)),
+    )
+
+    # MaiBotClient connects to MaiBot's WebSocket server.
+    server_url: str = maibot_cfg.get(
+        "server_url", "ws://localhost:8080/ws"
+    )
+    maibot_token: str | None = maibot_cfg.get("token") or None
+
+    maibot_client = MaiBotClient(
+        server_url=server_url,
+        platform="qq_official",
+        token=maibot_token,
+    )
+
+    # QQOfficialBotAdapter inherits botpy.Client and handles QQ events.
+    adapter = QQOfficialBotAdapter(
+        maibot_client=maibot_client,
+        intents=intents,
+    )
+
+    logger.info(
+        "Starting MaiBot Official QQ Adapter "
+        "(app_id=%s, maibot=%s)…",
+        app_id,
+        server_url,
+    )
+
+    # botpy.Client.run() creates and manages the event loop internally.
+    adapter.run(appid=app_id, secret=app_secret)
+
+
+if __name__ == "__main__":
+    main()
