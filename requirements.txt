@@ -1,2 +1,4 @@
+qq-botpy
+maim-message
 aiohttp
 toml

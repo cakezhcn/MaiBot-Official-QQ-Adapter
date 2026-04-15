@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maibot-official-qq-adapter"
+version = "2.0.0"
+description = "QQ Official Bot adapter for MaiBot, built on qq-botpy and maim_message."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "qq-botpy",
+    "maim-message",
+    "aiohttp",
+    "toml",
+]
+
+[project.scripts]
+maibot-qq-adapter = "main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["adapter*"]
