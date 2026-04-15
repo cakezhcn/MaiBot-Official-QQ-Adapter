@@ -5,3 +5,5 @@ __pycache__/
 env/
 .venv/
 *.egg-info/
+logs/
+config/config.toml

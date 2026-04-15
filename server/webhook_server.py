@@ -1,1 +1,16 @@
-from fastapi import FastAPI, HTTPException\n\nclass WebhookServer:\n    def __init__(self):\n        self.app = FastAPI()\n\n    @self.app.post("/webhook")\n    async def handle_webhook(data: dict):\n        # Process incoming data here\n        if 'event' not in data:\n            raise HTTPException(status_code=400, detail="Invalid data")\n        return {"status": "success"}\n\nwebhook_server = WebhookServer()
+from fastapi import FastAPI, HTTPException
+
+
+class WebhookServer:
+    def __init__(self):
+        self.app = FastAPI()
+
+        @self.app.post("/webhook")
+        async def handle_webhook(data: dict):
+            # Process incoming data here
+            if 'event' not in data:
+                raise HTTPException(status_code=400, detail="Invalid data")
+            return {"status": "success"}
+
+
+webhook_server = WebhookServer()
