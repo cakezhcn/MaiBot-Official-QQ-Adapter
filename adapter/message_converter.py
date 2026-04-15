@@ -43,6 +43,9 @@ from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
+# 🔴 平台名称常量 - 确保整个转换器使用一致的平台标识
+PLATFORM_NAME = "qq_official"
+
 # Matches QQ mention tokens such as <@!123456789> or <@123456789>
 _MENTION_RE = re.compile(r"<@!?\d+>")
 
@@ -115,16 +118,16 @@ class MessageConverter:
         author = message.author
         return {
             "message_info": {
-                "platform": "qq_official",
+                "platform": PLATFORM_NAME,  # 🔴 使用常量：qq_official
                 "message_id": message.id,
                 "time": _parse_timestamp(message.timestamp),
                 "group_info": {
-                    "platform": "qq_official",  # 🔴 修改：改为 platform
+                    "platform": PLATFORM_NAME,  # 🔴 群组也要添加 platform
                     "group_id": message.guild_id,
                     "group_name": message.guild_id,
                 },
                 "user_info": {
-                    "platform": "qq_official",  # 🔴 修改：改为 platform
+                    "platform": PLATFORM_NAME,  # 🔴 用户也要添加 platform
                     "user_id": author.id,
                     "user_nickname": author.username,
                     "user_cardname": getattr(author, "username", ""),
@@ -150,16 +153,16 @@ class MessageConverter:
         author = message.author
         return {
             "message_info": {
-                "platform": "qq_official",
+                "platform": PLATFORM_NAME,  # 🔴 使用常量：qq_official
                 "message_id": message.id,
                 "time": _parse_timestamp(message.timestamp),
                 "group_info": {
-                    "platform": "qq_official",  # 🔴 修改：改为 platform
+                    "platform": PLATFORM_NAME,  # 🔴 群组也要添加 platform
                     "group_id": message.group_openid,
                     "group_name": message.group_openid,
                 },
                 "user_info": {
-                    "platform": "qq_official",  # 🔴 修改：改为 platform
+                    "platform": PLATFORM_NAME,  # 🔴 用户也要添加 platform
                     "user_id": author.member_openid,
                     "user_nickname": author.member_openid,
                     "user_cardname": "",
@@ -185,18 +188,18 @@ class MessageConverter:
         user_openid = author.user_openid
         return {
             "message_info": {
-                "platform": "qq_official",
+                "platform": PLATFORM_NAME,  # 🔴 使用常量：qq_official
                 "message_id": message.id,
                 "time": _parse_timestamp(message.timestamp),
                 # For C2C there is no group; we store user_openid as group_id
                 # so MaiBot can route replies back to this specific user.
                 "group_info": {
-                    "platform": "qq_official",  # 🔴 修改：改为 platform
+                    "platform": PLATFORM_NAME,  # 🔴 群组也要添加 platform
                     "group_id": user_openid,
                     "group_name": user_openid,
                 },
                 "user_info": {
-                    "platform": "qq_official",  # 🔴 修改：改为 platform
+                    "platform": PLATFORM_NAME,  # 🔴 用户也要添加 platform
                     "user_id": user_openid,
                     "user_nickname": user_openid,
                     "user_cardname": "",
@@ -221,16 +224,16 @@ class MessageConverter:
         author = message.author
         return {
             "message_info": {
-                "platform": "qq_official",
+                "platform": PLATFORM_NAME,  # 🔴 使用常量：qq_official
                 "message_id": message.id,
                 "time": _parse_timestamp(message.timestamp),
                 "group_info": {
-                    "platform": "qq_official",  # 🔴 修改：改为 platform
+                    "platform": PLATFORM_NAME,  # 🔴 群组也要添加 platform
                     "group_id": message.guild_id,
                     "group_name": message.guild_id,
                 },
                 "user_info": {
-                    "platform": "qq_official",  # 🔴 修改：改为 platform
+                    "platform": PLATFORM_NAME,  # 🔴 用户也要添加 platform
                     "user_id": author.id,
                     "user_nickname": getattr(author, "username", author.id),
                     "user_cardname": "",
