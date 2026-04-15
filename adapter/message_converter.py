@@ -121,11 +121,13 @@ class MessageConverter:
                 "group_info": {
                     "group_id": message.guild_id,
                     "group_name": message.guild_id,
+                    "group_platform": "qq_official",
                 },
                 "user_info": {
                     "user_id": author.id,
                     "user_nickname": author.username,
                     "user_cardname": getattr(author, "username", ""),
+                    "user_platform": "qq_official",
                 },
                 "additional_config": {
                     "at_bot": True,
@@ -154,11 +156,13 @@ class MessageConverter:
                 "group_info": {
                     "group_id": message.group_openid,
                     "group_name": message.group_openid,
+                    "group_platform": "qq_official",
                 },
                 "user_info": {
                     "user_id": author.member_openid,
                     "user_nickname": author.member_openid,
                     "user_cardname": "",
+                    "user_platform": "qq_official", 
                 },
                 "additional_config": {
                     "at_bot": True,
@@ -189,11 +193,13 @@ class MessageConverter:
                 "group_info": {
                     "group_id": user_openid,
                     "group_name": user_openid,
+                    "group_platform": "qq_official", 
                 },
                 "user_info": {
                     "user_id": user_openid,
                     "user_nickname": user_openid,
                     "user_cardname": "",
+                    "user_platform": "qq_official",
                 },
                 "additional_config": {
                     "at_bot": True,
@@ -221,11 +227,13 @@ class MessageConverter:
                 "group_info": {
                     "group_id": message.guild_id,
                     "group_name": message.guild_id,
+                    "group_platform": "qq_official", 
                 },
                 "user_info": {
                     "user_id": author.id,
                     "user_nickname": getattr(author, "username", author.id),
                     "user_cardname": "",
+                    "user_platform": "qq_official", 
                 },
                 "additional_config": {
                     "at_bot": True,
