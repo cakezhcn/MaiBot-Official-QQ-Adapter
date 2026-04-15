@@ -47,7 +47,7 @@ def _parse_timestamp(ts_str: str) -> int:
         # for older versions we fall back to a manual strip.
         dt = datetime.fromisoformat(ts_str)
         return int(dt.astimezone(timezone.utc).timestamp())
-    except Exception:
+    except (ValueError, OverflowError):
         logger.warning("Could not parse timestamp %r, using current time", ts_str)
         return int(datetime.now(timezone.utc).timestamp())
 

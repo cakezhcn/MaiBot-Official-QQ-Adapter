@@ -87,7 +87,7 @@ class QQAdapter:
                 logger.info("Adapter cancelled, shutting down.")
                 self._running = False
                 break
-            except Exception as exc:  # noqa: BLE001
+            except (aiohttp.ClientError, asyncio.TimeoutError, OSError) as exc:
                 logger.error(
                     "WebSocket error: %s – reconnecting in %s s",
                     exc,
@@ -201,7 +201,7 @@ class QQAdapter:
             try:
                 await ws.send_str(heartbeat)
                 logger.debug("Heartbeat sent (seq=%s).", self._sequence)
-            except Exception as exc:  # noqa: BLE001
+            except (aiohttp.ClientError, ConnectionError) as exc:  # connection-level failures
                 logger.error("Failed to send heartbeat: %s", exc)
                 break
 
