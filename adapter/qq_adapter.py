@@ -140,7 +140,7 @@ class QQOfficialBotAdapter(botpy.Client):
         """
         Called by MaiBotClient when MaiBot sends a reply.
 
-        Looks up the matching QQ context and delivers the reply.
+        支持文本、图片、表情包等多种格式回复。
         """
         try:
             message_info = message_dict.get("message_info") or {}
@@ -155,37 +155,94 @@ class QQOfficialBotAdapter(botpy.Client):
                 )
                 return
 
-            reply_text = MessageConverter.maibot_reply_to_text(
+            # 🔴 改为提取完整的消息段而不仅仅是文本
+            segments = MessageConverter.maibot_reply_to_segments(
                 message_dict.get("message_segment") or {}
             )
-            if not reply_text:
-                logger.debug("MaiBot reply has no text content, skipping.")
+            if not segments:
+                logger.debug("MaiBot reply has no content, skipping.")
                 return
 
-            await self._deliver_reply(context, reply_text)
+            await self._deliver_reply(context, segments)
         except (KeyError, TypeError, ValueError) as exc:
             logger.error("Failed to parse MaiBot reply: %s", exc, exc_info=True)
 
-    async def _deliver_reply(self, context: dict, text: str) -> None:
-        """Send *text* to QQ using the routing context."""
+
+    async def _deliver_reply(self, context: dict, segments: list) -> None:
+        """
+        Send reply to QQ with support for text, images, emojis, etc.
+
+        参考 Napcat-Adapter 的实现方式。
+        """
         msg_type = context["type"]
         original: Any = context["message"]
+
         try:
+            # 🔴 转换为 QQ botpy 的消息格式
+            qq_message_parts = []
+
+            for seg in segments:
+                seg_type = seg.get("type", "")
+                data = seg.get("data", "")
+
+                if seg_type == "text":
+                    qq_message_parts.append({"type": "text", "data": data})
+
+                elif seg_type == "image":
+                    # URL 或 base64
+                    qq_message_parts.append({"type": "image", "data": data})
+
+                elif seg_type == "emoji":
+                    # 表情包也转成图片
+                    qq_message_parts.append({"type": "image", "data": data})
+
+                elif seg_type == "voice":
+                    # 语音
+                    qq_message_parts.append({"type": "record", "data": data})
+
+            if not qq_message_parts:
+                logger.debug("No content to send.")
+                return
+
+            logger.info(f"📤 Sending reply with {len(qq_message_parts)} segments")
+
+            # 🔴 发送到 QQ
             if msg_type == "guild":
-                await original.reply(content=text)
+                await original.reply(content=qq_message_parts)
             elif msg_type == "group":
-                await original.reply(content=text, msg_type=0)
+                await original.reply(content=qq_message_parts, msg_type=0)
             elif msg_type == "c2c":
-                await original.reply(content=text, msg_type=0)
+                await original.reply(content=qq_message_parts, msg_type=0)
             elif msg_type == "direct":
-                await original.reply(content=text)
+                await original.reply(content=qq_message_parts)
             else:
                 logger.error("Unknown context type: %s", msg_type)
-        except (ConnectionError, OSError, RuntimeError) as exc:
+
+            logger.info("✅ Reply sent successfully")
+
+        except Exception as exc:
             logger.error(
                 "Failed to deliver reply (type=%s): %s", msg_type, exc, exc_info=True
             )
-
+            # 降级：如果发送失败，至少发送文本
+            try:
+                fallback_text = " ".join(
+                    seg.get("data", "")
+                    for seg in segments
+                    if seg.get("type") == "text"
+                )
+                if fallback_text:
+                    logger.info("⚠️ Fallback: sending text only")
+                    if msg_type == "guild":
+                        await original.reply(content=fallback_text)
+                    elif msg_type == "group":
+                        await original.reply(content=fallback_text, msg_type=0)
+                    elif msg_type == "c2c":
+                        await original.reply(content=fallback_text, msg_type=0)
+                    elif msg_type == "direct":
+                        await original.reply(content=fallback_text)
+            except Exception as fallback_exc:
+                logger.error("Fallback text send also failed: %s", fallback_exc)
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------

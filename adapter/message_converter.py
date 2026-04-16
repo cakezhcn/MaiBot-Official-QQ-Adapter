@@ -105,6 +105,35 @@ def _content_to_segments(content: str, attachments: list | None = None) -> list:
     return segments or [{"type": "text", "data": ""}]
 
 
+def _extract_all_segments(seg: dict) -> list:
+    """
+    递归提取所有消息段，保留完整信息（包括图片、表情、语音等）
+    返回: [{"type": "text", "data": "..."}, {"type": "image", "data": "..."}, ...]
+    """
+    seg_type = seg.get("type", "")
+    data = seg.get("data")
+
+    if seg_type == "seglist":
+        # 递归处理列表中的每个段
+        result = []
+        for s in (data or []):
+            result.extend(_extract_all_segments(s))
+        return result
+    elif seg_type in ("text", "image", "emoji", "voice"):
+        # 保留原始数据
+        if data:
+            return [{"type": seg_type, "data": data}]
+        return []
+    else:
+        # 其他类型暂不支持，返回占位符
+        placeholder_map = {
+            "video": "[视频]",
+            "file": "[文件]",
+            "face": "[表情]",
+        }
+        placeholder = placeholder_map.get(seg_type, "[其他]")
+        return [{"type": "text", "data": placeholder}]
+
 class MessageConverter:
     """Stateless converter between botpy message objects and maim_message dicts."""
 
@@ -267,6 +296,13 @@ class MessageConverter:
         if not segment:
             return ""
         return _extract_text(segment)
+
+    @staticmethod
+    def maibot_reply_to_segments(segment: dict) -> list:
+        """🔴 新增方法：提取完整的消息段（包括图片、表情等）"""
+        if not segment:
+            return []
+        return _extract_all_segments(segment)
 
 
 def _extract_text(seg: dict) -> str:
